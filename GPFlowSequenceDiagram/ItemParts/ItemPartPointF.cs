@@ -6,11 +6,11 @@ using System.Text;
 
 namespace GPFlowSequenceDiagram
 {
-    public class ItemPartPointF: ItemPart
+    public class ItemPartPointF: DiagramItemPart
     {
-        protected PointF p_pt = new PointF();
+        protected DiagramPoint p_pt = new DiagramPoint();
 
-        public PointF Point
+        public DiagramPoint Point
         {
             set
             {
@@ -41,25 +41,29 @@ namespace GPFlowSequenceDiagram
             }
         }
 
-        public ItemPartPointF()
+        public ItemPartPointF(): base(null)
         {
         }
 
-        public ItemPartPointF(Item it, int type)
+        public ItemPartPointF(DiagramElement it)
+            : base(it)
         {
-            Item = it;
-            PartType = type;
         }
 
-        public override ItemPart Copy()
+        public ItemPartPointF(DiagramElement it, int type): base(it)
         {
-            ItemPartPointF pt = new ItemPartPointF(Item, PartType);
+            ElementType = type;
+        }
+
+        public override DiagramItemPart Copy()
+        {
+            ItemPartPointF pt = new ItemPartPointF(Parent, ElementType);
             pt.X = X;
             pt.Y = Y;
             return pt;
         }
 
-        public bool NearTo(PointF pt)
+        public bool NearTo(DiagramPoint pt)
         {
             return ((Math.Abs(pt.X - X) + Math.Abs(pt.Y - Y)) < 8) ;
         }

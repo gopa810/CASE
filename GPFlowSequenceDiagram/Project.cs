@@ -5,8 +5,7 @@ using System.Text;
 using System.Xml;
 using System.Net;
 
-
-namespace CASE.Model
+namespace GPFlowSequenceDiagram
 {
     public class Project: ProjectReference
     {
@@ -17,12 +16,16 @@ namespace CASE.Model
         private string proxyUser = string.Empty;
         private string proxyPassword = string.Empty;
 
+        private int lastObjectId = 0;
+        private DiagramItemCollection allItems;
+
         /// <summary>
         /// Plain constructor
         /// </summary>
-        public Project()
+        public Project(): base()
         {
             Clear();
+            allItems = new DiagramItemCollection(this);
         }
 
         /// <summary>
@@ -172,5 +175,54 @@ namespace CASE.Model
             return doc;
         }
 
+        public override int DE_GetUniqueId()
+        {
+            lastObjectId++;
+            return lastObjectId;
+        }
+
+        public override string DE_GetUniqueEntityName(string typeElement)
+        {
+            if (typeElement == "process")
+                return GetNewProcessName();
+            return base.DE_GetUniqueEntityName(typeElement);
+        }
+
+        /// <summary>
+        /// Generates unique name for new process instance
+        /// </summary>
+        /// <returns></returns>
+        public string GetNewProcessName()
+        {
+            for (int i = 1; i < 1000; i++)
+            {
+                string name = string.Format("Process {0}", i);
+                CFDIProcesss proc = FindProcessInstanceByName(name);
+                if (proc == null)
+                    return name;
+            }
+
+            return "Process";
+        }
+
+        /// <summary>
+        /// Finds process instance in this project by process name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public CFDIProcesss FindProcessInstanceByName(string name)
+        {
+            foreach (DiagramItem proc in allItems)
+            {
+                if (proc is CFDIProcesss)
+                {
+                    CFDIProcesss procA = (CFDIProcesss)proc;
+                    if (name.Equals(procA.ProcessName.Text))
+                        return procA;
+                }
+            }
+
+            return null;
+        }
     }
 }

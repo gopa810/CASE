@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -12,6 +12,11 @@
     <AssemblyName>GPFlowSequenceDiagram</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>3.5</OldToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -47,40 +52,52 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DiagramItemSwitch.cs" />
+    <Compile Include="DataFlow\DFDIDataSource.cs" />
+    <Compile Include="DataFlow\DFDIProcess.cs" />
+    <Compile Include="DiagramDrawingContext.cs" />
+    <Compile Include="DiagramPages\DiagramPageCondition.cs" />
+    <Compile Include="DiagramPages\DiagramPageDataflow.cs" />
+    <Compile Include="DiagramPages\DiagramPageProcedural.cs" />
+    <Compile Include="DiagramContext.cs" />
+    <Compile Include="ControlFlow\CFDIExpression.cs" />
+    <Compile Include="ControlFlow\CFDIConditionSwitch.cs" />
+    <Compile Include="DiagramPage.cs" />
     <Compile Include="DrawProperties.cs" />
     <Compile Include="Enums\ConnectivityWanted.cs" />
     <Compile Include="DiagramConnectionCollection.cs" />
     <Compile Include="DiagramItemCollection.cs" />
-    <Compile Include="DiagramItemDelegate.cs" />
-    <Compile Include="DiagramItemEndingPoint.cs" />
-    <Compile Include="DiagramItemForeach.cs" />
-    <Compile Include="DiagramItemForLoop.cs" />
-    <Compile Include="DiagramItemIfCondition.cs" />
-    <Compile Include="DiagramItemLoopBreak.cs" />
-    <Compile Include="DiagramItemLoopContinue.cs" />
-    <Compile Include="DiagramItemProcess.cs" />
-    <Compile Include="DiagramItemReturn.cs" />
-    <Compile Include="DiagramItemStart.cs" />
-    <Compile Include="DiagramItemWhileLoop.cs" />
+    <Compile Include="ControlFlow\CFDILoopForeach.cs" />
+    <Compile Include="ControlFlow\CFDILoopFor.cs" />
+    <Compile Include="ControlFlow\CFDIConditionIf.cs" />
+    <Compile Include="ControlFlow\CFDILoopBreak.cs" />
+    <Compile Include="ControlFlow\CFDILoopContinue.cs" />
+    <Compile Include="ControlFlow\CFDIProcesss.cs" />
+    <Compile Include="ControlFlow\CFDIReturn.cs" />
+    <Compile Include="ControlFlow\CFDIStart.cs" />
+    <Compile Include="ControlFlow\CFDILoopWhile.cs" />
     <Compile Include="Enums\DiagramMouseKeys.cs" />
     <Compile Include="DiagramViewConnection.cs" />
     <Compile Include="Enums\HighlightType.cs" />
-    <Compile Include="Item.cs" />
-    <Compile Include="ItemParts\ItemPart.cs" />
+    <Compile Include="DiagramItem.cs" />
+    <Compile Include="DiagramElement.cs" />
+    <Compile Include="ItemParts\ItemPadding.cs" />
+    <Compile Include="DiagramItemPart.cs" />
     <Compile Include="ItemParts\ItemPartCompoundPoint.cs" />
     <Compile Include="ItemParts\ItemPartCompoundRectangle.cs" />
+    <Compile Include="ItemParts\ItemPartElasticRect.cs" />
     <Compile Include="ItemParts\ItemPartFloat.cs" />
     <Compile Include="ItemParts\ItemPartInput.cs" />
     <Compile Include="ItemParts\ItemPartOutput.cs" />
     <Compile Include="ItemParts\ItemPartPointF.cs" />
     <Compile Include="ItemParts\ItemPartRectangle.cs" />
     <Compile Include="ItemParts\ItemPartSimpleRect.cs" />
-    <Compile Include="ItemRectangleArea.cs" />
-    <Compile Include="ItemWithBorders.cs" />
-    <Compile Include="ItemWithLoop.cs" />
+    <Compile Include="ItemParts\StringItemArea.cs" />
+    <Compile Include="ControlFlow\CFDILoopBase.cs" />
     <Compile Include="Enums\MouseState.cs" />
     <Compile Include="Enums\PointerPosition.cs" />
+    <Compile Include="NamedPropertyType.cs" />
+    <Compile Include="Project.cs" />
+    <Compile Include="ProjectReference.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Enums\ShapeSide.cs" />
     <Compile Include="Enums\ShapeType.cs" />

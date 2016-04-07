@@ -5,10 +5,9 @@ using System.Text;
 
 namespace GPFlowSequenceDiagram
 {
-    public class ItemWithBorders: Item
+    public class NamedPropertyType
     {
-        public float BorderLeft = 0;
-        public float BorderRight = 0;
-
+        public string Name { get; set; }
+        public string DataType { get; set; }
     }
 }

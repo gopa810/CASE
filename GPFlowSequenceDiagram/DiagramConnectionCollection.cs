@@ -5,13 +5,12 @@ using System.Text;
 
 namespace GPFlowSequenceDiagram
 {
-    public class DiagramConnectionCollection
+    public class DiagramConnectionCollection: DiagramElement
     {
         private List<DiagramViewConnection> Items = new List<DiagramViewConnection>();
-        public DiagramItemDelegate Delegate;
-        public DiagramConnectionCollection(DiagramItemDelegate aView)
+        public DiagramConnectionCollection(DiagramElement aView)
+            : base(aView)
         {
-            Delegate = aView;
         }
 
         public int Count
@@ -31,16 +30,18 @@ namespace GPFlowSequenceDiagram
         public void Add(DiagramViewConnection dvc)
         {
             dvc.Collection = this;
-            if (Delegate != null)
-                dvc.Id = Delegate.GetUniqueId();
+            if (Parent != null)
+                dvc.Id = Parent.DE_GetUniqueId();
             Items.Add(dvc);
-            Delegate.OnDiagramItemsCollectionChanged();
+            if (Parent != null)
+                Parent.DE_OnCollectionChanged();
         }
 
         public void Remove(DiagramViewConnection dvc)
         {
             Items.Remove(dvc);
-            Delegate.OnDiagramItemsCollectionChanged();
+            if (Parent != null)
+                Parent.DE_OnCollectionChanged();
         }
 
         public void RemoveWithItemId(int id)
@@ -68,7 +69,8 @@ namespace GPFlowSequenceDiagram
         public void Clear()
         {
             Items.Clear();
-            Delegate.OnDiagramItemsCollectionChanged();
+            if (Parent != null)
+                Parent.DE_OnCollectionChanged();
         }
     }
 }

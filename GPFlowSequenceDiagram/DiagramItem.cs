@@ -5,13 +5,12 @@ using System.Text;
 using System.Drawing;
 using System.Diagnostics;
 using System.Windows.Forms;
-
+using System.ComponentModel;
 
 namespace GPFlowSequenceDiagram
 {
-    public class Item
+    public class DiagramItem: DiagramElement
     {
-        private DiagramItemDelegate pDelegate = null;
         private int p_id = 0;
         private string p_text = string.Empty;
         private string p_subtext = string.Empty;
@@ -23,7 +22,44 @@ namespace GPFlowSequenceDiagram
         public ItemPartOutput EndPoint = null;
 
 
-        public virtual void ItemPartDidChanged(ItemPart changeItem)
+        public DiagramItem(DiagramElement parent)
+            : base(parent)
+        {
+            ElementType = ET_GENERAL_OBJECT;
+            OriginPoint = new ItemPartInput(this, DiagramItemPart.ET_ORIGIN_POINT);
+            EndPoint = new ItemPartOutput(this, DiagramItemPart.ET_ENDING_POINT);
+        }
+
+        public DiagramItem(DiagramElement parent, RectangleF aBounds)
+            : base(parent)
+        {
+            ElementType = ET_GENERAL_OBJECT;
+            OriginPoint = new ItemPartInput(this, DiagramItemPart.ET_ORIGIN_POINT);
+            EndPoint = new ItemPartOutput(this, DiagramItemPart.ET_ENDING_POINT);
+        }
+
+        public DiagramItem(DiagramElement parent, RectangleF aBounds, string text)
+            : base(parent)
+        {
+            ElementType = ET_GENERAL_OBJECT;
+            OriginPoint = new ItemPartInput(this, DiagramItemPart.ET_ORIGIN_POINT);
+            EndPoint = new ItemPartOutput(this, DiagramItemPart.ET_ENDING_POINT);
+            p_text = text;
+        }
+
+        public override string ToString()
+        {
+            return string.Format("Item {0}", ElementId);
+        }
+
+        /// <summary>
+        /// Adds subitem to given item. 
+        /// </summary>
+        /// <param name="newItem">New item to be added</param>
+        /// <param name="diagramLocation">DiagramLocation is location within the whole diagram.
+        /// Most probably they needs to be converted into relative coordinates relative
+        /// to parent items' original point.</param>
+        public virtual void AddSubitem(DiagramItem newItem, DiagramPoint diagramLocation)
         {
         }
 
@@ -55,15 +91,8 @@ namespace GPFlowSequenceDiagram
             }
         }
 
-        public virtual RectangleAnchored DrawingRectangle
-        {
-            get
-            {
-                return new RectangleAnchored(OriginPoint.X, OriginPoint.Y, 8, 8, EndPoint.Y - OriginPoint.Y);
-            }
-        }
-
-        public Item PreviousItem
+        [Browsable(false)]
+        public DiagramItem PreviousItem
         {
             get
             {
@@ -73,6 +102,7 @@ namespace GPFlowSequenceDiagram
             }
         }
 
+        [Category("Descriptive")]
         public string Text
         {
             get
@@ -84,11 +114,15 @@ namespace GPFlowSequenceDiagram
                 p_text = value;
             }
         }
+
+        [Category("Descriptive")]
         public string Subtext
         {
             get { return p_subtext; }
             set { p_subtext = value; }
         }
+
+        [ReadOnly(true)]
         public int Id
         {
             get
@@ -100,56 +134,33 @@ namespace GPFlowSequenceDiagram
                 p_id = value;
             }
         }
+
+        [Browsable(false)]
         public object Tag
         {
             get { return p_tag; }
             set { p_tag = value; }
         }
-        public DiagramItemDelegate Delegate
-        {
-            get
-            {
-                return pDelegate;
-            }
-            set
-            {
-                pDelegate = value;
-            }
-        }
+
+        [ReadOnly(true)]
         public bool Selected
         {
             get { return p_selected; }
             set 
             {
                 p_selected = value;
-                Delegate.OnDiagramItemsCollectionChanged();
+                if (Parent is DiagramItemCollection)
+                {
+                    ((DiagramItemCollection)Parent).DE_OnItemSelected(this);
+                }
             }
         }
 
-        public Item()
-        {
-            OriginPoint = new ItemPartInput(this, ItemPart.ORIGIN_POINT);
-            EndPoint = new ItemPartOutput(this, ItemPart.ENDING_POINT);
-        }
-
-        public Item(RectangleF aBounds)
-        {
-            OriginPoint = new ItemPartInput(this, ItemPart.ORIGIN_POINT);
-            EndPoint = new ItemPartOutput(this, ItemPart.ENDING_POINT); 
-        }
-
-        public Item(RectangleF aBounds, string text)
-        {
-            OriginPoint = new ItemPartInput(this, ItemPart.ORIGIN_POINT);
-            EndPoint = new ItemPartOutput(this, ItemPart.ENDING_POINT); 
-            p_text = text;
-        }
-
-        public virtual void MouseMove(ItemPart item, ItemPart startValue, SizeF diff, DiagramMouseKeys keys)
+        public virtual void MouseMove(DiagramItemPart item, DiagramItemPart startValue, SizeF diff, DiagramMouseKeys keys)
         {
         }
 
-        public virtual void MouseUp(ItemPart itemPart)
+        public virtual void MouseUp(DiagramItemPart itemPart)
         {
         }
 
@@ -163,18 +174,23 @@ namespace GPFlowSequenceDiagram
         }
 
 
-        public virtual ItemPart GetHitItem(PointF pt)
+        public override void DE_FindElements(DiagramContext context)
         {
+            DiagramPoint pt = context.PagePoint;
+            if (context.FoundElement != null)
+                return;
+
             if ((Math.Abs(pt.X - OriginPoint.X) + Math.Abs(pt.Y - OriginPoint.Y)) < 8)
             {
-                return OriginPoint;
+                context.InsertElement(OriginPoint);
             }
-            else if ((Math.Abs(pt.X - EndPoint.X) + Math.Abs(pt.Y - EndPoint.Y)) < 8)
-            {
-                return EndPoint;
-            }
+            if (context.FoundElement != null)
+                return;
 
-            return null;
+            if ((Math.Abs(pt.X - EndPoint.X) + Math.Abs(pt.Y - EndPoint.Y)) < 8)
+            {
+                context.InsertElement(EndPoint);
+            }
         }
 
         public virtual Brush GetBrushForHighlight(HighlightType highType)
@@ -213,8 +229,28 @@ namespace GPFlowSequenceDiagram
             return DrawProperties.p_penNormal;
         }
 
-        public virtual void Paint(Graphics g, HighlightType highType)
+        public virtual Pen GetDashPenForHighlight(HighlightType highType)
         {
+            if (highType == HighlightType.Tracked)
+            {
+                return DrawProperties.p_penHighlightDash;
+            }
+            else if (highType == HighlightType.Selected)
+            {
+                return DrawProperties.p_penBoldDash;
+            }
+            else if (highType == HighlightType.Normal)
+            {
+                return DrawProperties.p_penNormalDash;
+            }
+
+            return DrawProperties.p_penNormalDash;
+        }
+
+        public override SizeF DE_DrawShape(DiagramDrawingContext ctx, HighlightType highType)
+        {
+            Graphics g = ctx.Graphics;
+
             Pen p1 = GetPenForHighlight(highType);
             Brush b1 = GetBrushForHighlight(highType);
 
@@ -222,7 +258,38 @@ namespace GPFlowSequenceDiagram
             g.DrawLine(p1, OriginPoint.X, OriginPoint.Y + 3, EndPoint.X, EndPoint.Y - 3);
             g.DrawEllipse(p1, EndPoint.X - 3, EndPoint.Y - 3, 6, 6);
 
+            return new SizeF(32, EndPoint.Y - OriginPoint.Y);
         }
 
+        public virtual void SetOriginPoint(DiagramDrawingContext ctx, float x, float y)
+        {
+            if (x != OriginPoint.X || y != OriginPoint.Y)
+            {
+                OriginPoint.X = x;
+                OriginPoint.Y = y;
+                RelayoutNextShapes(ctx);
+            }
+        }
+
+        public virtual void RelayoutNextShapes(DiagramDrawingContext ctx)
+        {
+            DE_DrawShape(ctx, HighlightType.NotDraw);
+
+            if (EndPoint.RefItem != null && EndPoint.RefItem.Item != null)
+            {
+                EndPoint.RefItem.Item.SetOriginPoint(ctx, EndPoint.X, EndPoint.Y);
+            }
+        }
+
+        public virtual DiagramPage ParentPage
+        {
+            get
+            {
+                DiagramElement elem = DE_FindPredecessorOfType(DiagramElement.ET_GENERAL_PAGE);
+                if (elem is DiagramPage)
+                    return elem as DiagramPage;
+                return null;
+            }
+        }
     }
 }

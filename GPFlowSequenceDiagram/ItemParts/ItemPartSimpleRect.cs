@@ -14,21 +14,19 @@ namespace GPFlowSequenceDiagram
     ///  - Width
     ///  - Height
     /// </summary>
-    public class ItemPartSimpleRect: ItemPart
+    public class ItemPartSimpleRect: DiagramItemPart
     {
-        public ItemPartSimpleRect()
+        public ItemPartSimpleRect(): base(null)
         {
         }
 
-        public ItemPartSimpleRect(Item it)
+        public ItemPartSimpleRect(DiagramItem it): base(it)
         {
-            Item = it;
         }
 
-        public ItemPartSimpleRect(Item it, int type)
+        public ItemPartSimpleRect(DiagramItem it, int type): base(it)
         {
-            Item = it;
-            PartType = type;
+            ElementType = type;
         }
 
         public float Top
@@ -39,7 +37,7 @@ namespace GPFlowSequenceDiagram
             }
             set
             {
-                _TopCenter.Y = value;
+                TopCenter = new PointF(TopCenter.X, value);
             }
         }
 
@@ -51,13 +49,11 @@ namespace GPFlowSequenceDiagram
             }
             set
             {
-                _TopCenter.X = value;
+                TopCenter = new PointF(value, TopCenter.Y);
             }
         }
 
-        protected PointF _TopCenter;
-
-        public PointF TopCenter { get { return _TopCenter; } set { _TopCenter = value; } }
+        public PointF TopCenter { get; set; }
         public SizeF Size { get; set; }
 
         public float Bottom
@@ -88,7 +84,7 @@ namespace GPFlowSequenceDiagram
             get { return Size.Height; }
         }
 
-        public bool Contains(PointF pt)
+        public bool Contains(DiagramPoint pt)
         {
             return (pt.X >= Left && pt.X <= Right && pt.Y >= Top && pt.Y <= Bottom);
         }
@@ -103,5 +99,11 @@ namespace GPFlowSequenceDiagram
             get { return Width / 2; }
         }
 
+
+        public void SetRectangle(RectangleF box)
+        {
+            TopCenter = new PointF((box.Left + box.Right) / 2, box.Top);
+            Size = box.Size;
+        }
     }
 }

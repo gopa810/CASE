@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,106 +7,115 @@ using System.Drawing;
 
 namespace GPFlowSequenceDiagram
 {
-    public class DiagramItemCollection
+    public struct DiagramPoint
     {
-        public DiagramItemDelegate Delegate = null;
+        public float X;
+        public float Y;
 
-        protected List<Item> Items = new List<Item>();
-
-        public DiagramItemCollection(DiagramItemDelegate view)
+        public DiagramPoint(float iX, float iY)
         {
-            Delegate = view;
+            X = iX;
+            Y = iY;
         }
 
-        public Item this[int index]
+        public DiagramPoint(PointF point)
         {
-            get
-            {
-                return Items[index];
-            }
-            set
-            {
-                Items[index] = value;
-                Delegate.OnDiagramItemsCollectionChanged();
-            }
+            X = point.X;
+            Y = point.Y;
+        }
+
+        public DiagramPoint DiagramPointByAdding(SizeF offset)
+        {
+            return new DiagramPoint(X + offset.Width, Y + offset.Height);
+        }
+    }
+
+    public class DiagramItemCollection: DiagramElement, IEnumerable
+    {
+        private List<DiagramItem> items = new List<DiagramItem>();
+
+        public DiagramItemCollection(DiagramElement parent)
+            : base(parent)
+        {
+        }
+
+        public override string ToString()
+        {
+            return string.Format("Collection {0}", ElementId);
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            return items.GetEnumerator();
+        }
+
+        public void Add(DiagramItem dvi)
+        {
+            dvi.Parent = this;
+            dvi.Id = Parent.DE_GetUniqueId();
+            items.Add(dvi);
+            Parent.DE_OnCollectionChanged();
         }
 
         public int Count
         {
-            get { return Items.Count; }
+            get { return items.Count; }
         }
 
-        public void Add(Item dvi)
+        public DiagramItem this[int index]
         {
-            dvi.Delegate = Delegate;
-            dvi.Id = Delegate.GetUniqueId();
-            Items.Add(dvi);
-            Delegate.OnDiagramItemsCollectionChanged();
+            get
+            {
+                return items[index];
+            }
         }
 
         public void Clear()
         {
-            Items.Clear();
-            Delegate.OnDiagramItemsCollectionChanged();
+            items.Clear();
+            Parent.DE_OnCollectionChanged();
         }
 
-        public void Remove(Item dvi)
+        public void Remove(DiagramItem dvi)
         {
-            Items.Remove(dvi);
-            if (Delegate != null)
+            items.Remove(dvi);
+            if (Parent != null)
             {
-                Delegate.OnDiagramItemsCollectionChanged();
-                Delegate.RemoveConnectionWithItem(dvi.Id);
+                Parent.DE_OnCollectionChanged();
+                Parent.DE_RemoveConnectionWithItem(dvi.Id);
             }
         }
 
         public void ClearSelection()
         {
-            foreach (Item item in Items)
+            foreach (DiagramItem item in items)
             {
                 item.Selected = false;
             }
         }
 
-        public Item FindItemWithId(int id)
+        public DiagramItem FindItemWithId(int id)
         {
-            foreach (Item dvi in Items)
+            foreach (DiagramItem dvi in items)
             {
                 if (dvi.Id == id)
                     return dvi;
             }
             return null;
         }
-        public ItemPart FindItemContainingPoint(PointF pt)
+
+        public override void DE_FindElements(DiagramContext context)
         {
-            ItemPart found = null;
-            foreach (Item dvi in Items)
+            if (context.FoundElement != null)
+                return;
+
+            foreach (DiagramItem dvi in items)
             {
-                found = dvi.GetHitItem(pt);
-                if (found != null)
-                    return found;
+                if (context.FoundElement != null)
+                    return;
+                dvi.DE_FindElements(context);
             }
-            return null;
         }
-        public List<ItemPart> FindItemsAtPoint(PointF pt)
-        {
-            List<ItemPart> found = new List<ItemPart>();
-            ItemPart item = null;
-            foreach (Item dvi in Items)
-            {
-                item = dvi.GetHitItem(pt);
-                if (item != null)
-                {
-                    int insIndex = 0;
-                    for (int i = 0; i < found.Count; i++)
-                    {
-                        if (found[i].PartType < item.PartType)
-                            insIndex = i + 1;
-                    }
-                    found.Insert(insIndex, item);
-                }
-            }
-            return found;
-        }
+
     }
 }

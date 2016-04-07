@@ -7,12 +7,12 @@ using System.Windows.Forms;
 
 namespace GPFlowSequenceDiagram
 {
-    public class DiagramItemForLoop: DiagramItemWhileLoop
+    public class CFDILoopFor: CFDILoopWhile
     {
         public ItemPartRectangle initBlock = null;
         public ItemPartRectangle iterationBlock = null;
 
-        public DiagramItemForLoop()
+        public CFDILoopFor(DiagramElement parent): base(parent)
         {
             initBlock = new ItemPartRectangle(this);
             initBlock.Size = new SizeF(50, 30);
@@ -20,12 +20,13 @@ namespace GPFlowSequenceDiagram
             iterationBlock.Size = new SizeF(50, 30);
         }
 
-        public override void Paint(System.Drawing.Graphics g, HighlightType highType)
+        public override SizeF DE_DrawShape(DiagramDrawingContext ctx, HighlightType highType)
         {
-            Pen p1 = GetPenForHighlight(highType);
+            Graphics g = ctx.Graphics;
+            /*Pen p1 = GetPenForHighlight(highType);
             Brush b1 = GetBrushForHighlight(highType);
 
-            PointF cn = OriginPoint.Point;
+            DiagramPoint cn = OriginPoint.Point;
             PointF[] points = new PointF[] {
                 GetPointOnPicoForSide(ShapeSide.Top),
                 GetPointOnPicoForSide(ShapeSide.Right),
@@ -62,7 +63,7 @@ namespace GPFlowSequenceDiagram
             g.FillPolygon(b1, points);
             g.DrawPolygon(p1, points);
 
-            ItemPartOutput last1 = trueEnding.GetLastItem();
+            ItemPartOutput last1 = trueEnding.GetLastOutputItem();
 
             // drawing line from last item to iteration block
             g.DrawLine(p1, last1.X, last1.Y + 3, last1.X, last1.Y + 16);
@@ -81,10 +82,11 @@ namespace GPFlowSequenceDiagram
 
             // drawing exit circle
             g.DrawEllipse(p1, EndPoint.X - 3, EndPoint.Y - 3, 6, 6);
-
+            */
+            return new SizeF(32, EndPoint.Y - OriginPoint.Y);
         }
 
-        public override float PicoOriginDistance
+        public float PicoOriginDistance
         {
             get
             {
@@ -92,41 +94,15 @@ namespace GPFlowSequenceDiagram
             }
         }
 
-        public override void ItemPartDidChanged(ItemPart part)
+        public override void DE_FindElements(DiagramContext context)
         {
-            if (part.PartType == ItemPart.ORIGIN_POINT)
-            {
-                initBlock.SetTopCenter(OriginPoint.X, OriginPoint.Y + DrawProperties.p_drawingStep);
-                iterationBlock.SetRightCenter(initBlock.Left.Value - 16, initBlock.Bottom.Value + DrawProperties.p_drawingStep);
+            if (context.FoundElement != null)
+                return;
 
-                float brdLeft = iterationBlock.Left.Value - DrawProperties.p_drawingStep;
-
-                ItemPartOutput lastTrue = trueEnding.GetLastItem();
-
-                RectangleAnchored rectTrue = trueEnding.CalculateSubordinatesDrawingRectangle();
-
-                RecalculateBranchEndings(rectTrue, lastTrue);
-
-                RelayoutBranches();
-
-                EndPoint.X = OriginPoint.X;
-                EndPoint.Y = OriginPoint.Y + PicoOriginDistance + 32 + rectTrue.Height + 48;
-                if (EndPoint.MoveReferencedItemPart && EndPoint.RefItem != null)
-                {
-                    EndPoint.RefItem.Point = EndPoint.Point;
-                    EndPoint.RefItem.ItemPartDidChanged();
-                }
-
-                if (brdLeft < BorderLeft)
-                    BorderLeft = brdLeft;
-            }
-        }
-
-        public override ItemPart GetHitItem(PointF pt)
-        {
-            if ((Math.Abs(pt.X - trueEnding.X) + Math.Abs(pt.Y - trueEnding.Y)) < 8)
-                return trueEnding;
-            return base.GetHitItem(pt);
+            if (context.FoundElement == null)
+                base.DE_FindElements(context);
+            if (context.FoundElement == null && (Math.Abs(context.PagePoint.X - trueEnding.X) + Math.Abs(context.PagePoint.Y - trueEnding.Y)) < 8)
+                context.InsertElement(trueEnding);
         }
     }
 }

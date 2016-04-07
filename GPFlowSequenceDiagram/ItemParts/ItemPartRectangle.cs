@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace GPFlowSequenceDiagram
 {
-    public class ItemPartRectangle : ItemPart
+    public class ItemPartRectangle : DiagramItemPart
     {
         public ItemPartFloat Top = null;
         public ItemPartFloat Bottom = null;
@@ -23,31 +23,30 @@ namespace GPFlowSequenceDiagram
 
         private void InitializeMembers()
         {
-            Top = new ItemPartFloat(Item, ItemPart.TOP_BORDER);
-            Top.SetCursor(System.Windows.Forms.Keys.None, System.Windows.Forms.Cursors.SizeNS);
-            Bottom = new ItemPartFloat(Item, ItemPart.BOTTOM_BORDER);
-            Bottom.SetCursor(System.Windows.Forms.Keys.None, System.Windows.Forms.Cursors.SizeNS);
-            Left = new ItemPartFloat(Item, ItemPart.LEFT_BORDER);
-            Left.SetCursor(System.Windows.Forms.Keys.None, System.Windows.Forms.Cursors.SizeWE);
-            Right = new ItemPartFloat(Item, ItemPart.RIGHT_BORDER);
-            Right.SetCursor(System.Windows.Forms.Keys.None, System.Windows.Forms.Cursors.SizeWE);
+            Top = new ItemPartFloat(Parent, DiagramItemPart.TOP_BORDER);
+            Top.DE_SetCursor(System.Windows.Forms.Keys.None, System.Windows.Forms.Cursors.SizeNS);
+            Bottom = new ItemPartFloat(Parent, DiagramItemPart.BOTTOM_BORDER);
+            Bottom.DE_SetCursor(System.Windows.Forms.Keys.None, System.Windows.Forms.Cursors.SizeNS);
+            Left = new ItemPartFloat(Parent, DiagramItemPart.LEFT_BORDER);
+            Left.DE_SetCursor(System.Windows.Forms.Keys.None, System.Windows.Forms.Cursors.SizeWE);
+            Right = new ItemPartFloat(Parent, DiagramItemPart.RIGHT_BORDER);
+            Right.DE_SetCursor(System.Windows.Forms.Keys.None, System.Windows.Forms.Cursors.SizeWE);
 
-            TopLeft = new ItemPartCompoundPoint(Item, ItemPart.TOPLEFT_CORNER, Left, Top);
-            TopLeft.SetCursor(System.Windows.Forms.Keys.None, System.Windows.Forms.Cursors.SizeNWSE);
-            TopRight = new ItemPartCompoundPoint(Item, ItemPart.TOPRIGHT_CORNER, Right, Top);
-            TopRight.SetCursor(System.Windows.Forms.Keys.None, System.Windows.Forms.Cursors.SizeNESW);
-            BottomLeft = new ItemPartCompoundPoint(Item, ItemPart.BOTTOMLEFT_CORNER, Left, Bottom);
-            BottomLeft.SetCursor(System.Windows.Forms.Keys.None, System.Windows.Forms.Cursors.SizeNESW);
-            BottomRight = new ItemPartCompoundPoint(Item, ItemPart.BOTTOMRIGHT_CORNER, Right, Bottom);
-            BottomRight.SetCursor(System.Windows.Forms.Keys.None, System.Windows.Forms.Cursors.SizeNWSE);
+            TopLeft = new ItemPartCompoundPoint(Parent, DiagramItemPart.TOPLEFT_CORNER, Left, Top);
+            TopLeft.DE_SetCursor(System.Windows.Forms.Keys.None, System.Windows.Forms.Cursors.SizeNWSE);
+            TopRight = new ItemPartCompoundPoint(Parent, DiagramItemPart.TOPRIGHT_CORNER, Right, Top);
+            TopRight.DE_SetCursor(System.Windows.Forms.Keys.None, System.Windows.Forms.Cursors.SizeNESW);
+            BottomLeft = new ItemPartCompoundPoint(Parent, DiagramItemPart.BOTTOMLEFT_CORNER, Left, Bottom);
+            BottomLeft.DE_SetCursor(System.Windows.Forms.Keys.None, System.Windows.Forms.Cursors.SizeNESW);
+            BottomRight = new ItemPartCompoundPoint(Parent, DiagramItemPart.BOTTOMRIGHT_CORNER, Right, Bottom);
+            BottomRight.DE_SetCursor(System.Windows.Forms.Keys.None, System.Windows.Forms.Cursors.SizeNWSE);
 
-            PartArea = new ItemPartCompoundRectangle(Item, ItemPart.PRIMARY_AREA, Left, Top, Right, Bottom);
+            PartArea = new ItemPartCompoundRectangle(Parent, DiagramItemPart.ET_PRIMARY_AREA, Left, Top, Right, Bottom);
 
         }
 
-        public ItemPartRectangle(Item it)
+        public ItemPartRectangle(DiagramItem it): base(it)
         {
-            Item = it;
             InitializeMembers();
         }
 
@@ -111,9 +110,15 @@ namespace GPFlowSequenceDiagram
             }
         }
 
-        public virtual ItemPart GetHitItem(PointF pt)
+        public override void DE_FindElements(DiagramContext context)
         {
-            ItemPart part = null;
+            if (context.FoundElement != null)
+                return;
+            base.DE_FindElements(context);
+
+            DiagramItemPart part = null;
+            DiagramPoint pt = context.PagePoint;
+
             if ((pt.X >= Left.Value - 3) && (pt.X <= Right.Value + 3)
                 && (pt.Y >= Top.Value - 3) && (pt.Y <= Bottom.Value + 3))
             {
@@ -158,10 +163,11 @@ namespace GPFlowSequenceDiagram
                 }
             }
 
-            return part;
+            if (part != null)
+                context.InsertElement(part);
         }
 
-        public virtual void MouseMove(ItemPart item, ItemPart startValue, SizeF diff, DiagramMouseKeys keys)
+        public virtual void MouseMove(DiagramItemPart item, DiagramItemPart startValue, SizeF diff, DiagramMouseKeys keys)
         {
             if (item == Left)
             {
@@ -255,7 +261,7 @@ namespace GPFlowSequenceDiagram
 
 
 
-        public bool IsMember(ItemPart itemPart)
+        public bool IsMember(DiagramItemPart itemPart)
         {
             return (itemPart == PartArea || itemPart == Bottom
                 || itemPart == BottomLeft || itemPart == BottomRight

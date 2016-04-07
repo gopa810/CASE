@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CASE", "DataCommander\CASE.csproj", "{68B8087C-4FB0-461C-A08D-90D42F8A4B28}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPFlowSequenceDiagram", "GPFlowSequenceDiagram\GPFlowSequenceDiagram.csproj", "{73A7346D-992C-42C3-B3BF-F13BAEFA20B3}"

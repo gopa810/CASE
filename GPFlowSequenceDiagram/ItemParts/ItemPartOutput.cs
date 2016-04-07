@@ -12,25 +12,20 @@ namespace GPFlowSequenceDiagram
         protected ItemPartInput p_ref_item = null;
         public bool MoveReferencedItemPart = true;
 
-        public ItemPartOutput()
+        public ItemPartOutput(): base(null)
         {
         }
 
-        public ItemPartOutput(Item it)
+        public ItemPartOutput(DiagramItem it): base(it)
         {
-            Item = it;
         }
 
-        public ItemPartOutput(Item it, int type)
+        public ItemPartOutput(DiagramItem it, int type): base(it,type)
         {
-            Item = it;
-            PartType = type;
         }
 
-        public ItemPartOutput(Item it, int type, float x, float y)
+        public ItemPartOutput(DiagramItem it, int type, float x, float y): base(it, type)
         {
-            Item = it;
-            PartType = type;
             p_pt.X = x;
             p_pt.Y = y;
         }
@@ -52,43 +47,24 @@ namespace GPFlowSequenceDiagram
             }
         }
 
-        public void MergeRectangles(ref RectangleF mainRect, RectangleF addedRect)
+        public static ItemPartOutput FirstItemPartOutput(DiagramElement firstElem)
         {
-            float t, b, r, l;
-
-            t = mainRect.Top;
-            b = mainRect.Bottom;
-            r = mainRect.Right;
-            l = mainRect.Left;
-            if (addedRect.Bottom > b)
+            DiagramElement elem = firstElem;
+            while (elem != null)
             {
-                b = addedRect.Bottom;
+                if (elem is ItemPartOutput)
+                    return (ItemPartOutput)elem;
+                elem = elem.Parent;
             }
-            if (addedRect.Top < t)
-            {
-                t = addedRect.Top;
-            }
-            if (addedRect.Right > r)
-            {
-                r = addedRect.Right;
-            }
-            if (addedRect.Left < l)
-            {
-                l = addedRect.Left;
-            }
-            mainRect.X = l;
-            mainRect.Y = t;
-            mainRect.Width = r - l;
-            mainRect.Height = b - t;
+            return null;
         }
-
-        public ItemPartOutput GetLastItem()
+        public ItemPartOutput GetLastOutputItem()
         {
             ItemPartOutput ipi = this;
 
             while (ipi.RefItem != null)
             {
-                Item it = ipi.RefItem.Item;
+                DiagramItem it = ipi.RefItem.Item;
                 if (it != null)
                 {
                     ipi = it.EndPoint;
@@ -102,24 +78,20 @@ namespace GPFlowSequenceDiagram
             return ipi;
         }
 
-        public RectangleAnchored CalculateSubordinatesDrawingRectangle()
+        public SizeF CalculateSuccessorSize(DiagramDrawingContext ctx)
         {
-            RectangleAnchored mainRect = null;
+            SizeF mainRect = new SizeF(0,0);
             ItemPartOutput ipi = this;
 
-            //Debugger.Log(0, "", " ----- \n");
             while (ipi.RefItem != null)
             {
-                Item it = ipi.RefItem.Item;
+                DiagramItem it = ipi.RefItem.Item;
                 if (it != null)
                 {
-                    RectangleAnchored addedRect = it.DrawingRectangle;
-                    if (mainRect == null)
-                        mainRect = addedRect;
-                    else
-                        mainRect.MergeRectangles(addedRect);
-                    //Debugger.Log(0, "", "   -> AddedRectangle=" + addedRect.ToString() + "\n");
-                    //Debugger.Log(0, "", "  --> MainRectangle=" + mainRect.ToString() + "\n");
+                    SizeF addedRect = it.DE_DrawShape(ctx, HighlightType.NotDraw);
+                    mainRect.Width = Math.Max(mainRect.Width, addedRect.Width);
+                    mainRect.Height += addedRect.Height;
+
                     ipi = it.EndPoint;
                 }
                 else
@@ -128,24 +100,32 @@ namespace GPFlowSequenceDiagram
                 }
             }
 
-            if (mainRect == null)
-                mainRect = new RectangleAnchored();
-
-            //Debugger.Log(0, "", "MainRectangle=" + mainRect.ToString() + "\n");
             return mainRect;
         }
 
-        public void RelayoutPreviousItems()
+        public DiagramItem GetHeadItem()
         {
             ItemPartInput itemPartStart = this.Item.OriginPoint;
-            ItemPartOutput previousItemEnd = this;// itemPartStart.RefItem;
-            Item previousItem = null;
+            ItemPartOutput previousItemEnd = this;
+            DiagramItem previousItem = null;
             while (previousItemEnd != null)
             {
                 previousItem = previousItemEnd.Item;
                 itemPartStart = previousItem.OriginPoint;
-                itemPartStart.ItemPartDidChanged();
+                if (itemPartStart.RefItem == null)
+                    break;
                 previousItemEnd = itemPartStart.RefItem;
+            }
+
+            return previousItem;
+        }
+
+        public void SetPosition(float pX, float pY)
+        {
+            if (pX != X || pY != Y)
+            {
+                X = pX;
+                Y = pY;
             }
         }
     }

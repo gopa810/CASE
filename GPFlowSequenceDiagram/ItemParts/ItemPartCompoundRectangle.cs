@@ -6,32 +6,30 @@ using System.Drawing;
 
 namespace GPFlowSequenceDiagram
 {
-    public class ItemPartCompoundRectangle: ItemPart
+    public class ItemPartCompoundRectangle: DiagramItemPart
     {
         public ItemPartFloat Top = null;
         public ItemPartFloat Right = null;
         public ItemPartFloat Bottom = null;
         public ItemPartFloat Left = null;
 
-        public ItemPartCompoundRectangle()
+        public ItemPartCompoundRectangle(): base(null)
         {
         }
 
-        public ItemPartCompoundRectangle(Item it)
+        public ItemPartCompoundRectangle(DiagramElement it)
+            : base(it)
         {
-            Item = it;
         }
 
-        public ItemPartCompoundRectangle(Item it, int type)
+        public ItemPartCompoundRectangle(DiagramElement it, int type)
+            : base(it, type)
         {
-            Item = it;
-            PartType = type;
         }
 
-        public ItemPartCompoundRectangle(Item it, int type, ItemPartFloat pLeft, ItemPartFloat pTop, ItemPartFloat pRight, ItemPartFloat pBottom)
+        public ItemPartCompoundRectangle(DiagramElement it, int type, ItemPartFloat pLeft, ItemPartFloat pTop, ItemPartFloat pRight, ItemPartFloat pBottom)
+            : base(it, type)
         {
-            Item = it;
-            PartType = type;
             Right = pRight;
             Top = pTop;
             Left = pLeft;

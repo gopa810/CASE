@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CASE.Model
+namespace GPFlowSequenceDiagram
 {
-    public class ProjectReference
+    public class ProjectReference: DiagramElement
     {
         protected bool modified = false;
         protected string fileName = string.Empty;
@@ -35,6 +35,11 @@ namespace CASE.Model
         {
             get { return modified; }
             set { modified = value; }
+        }
+
+        public ProjectReference()
+            : base(null)
+        {
         }
     }
 }

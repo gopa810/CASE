@@ -15,6 +15,8 @@ using CASE.Dialogs;
 using CASE.Model;
 using CASE.Forms;
 
+using GPFlowSequenceDiagram;
+
 namespace CASE
 {
     public partial class MainForm : Form

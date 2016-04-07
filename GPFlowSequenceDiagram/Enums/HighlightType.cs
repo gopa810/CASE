@@ -9,6 +9,7 @@ namespace GPFlowSequenceDiagram
     {
         Normal,
         Selected,
-        Tracked
+        Tracked,
+        NotDraw
     }
 }

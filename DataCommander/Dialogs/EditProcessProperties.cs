@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 
 using CASE.Model;
+using GPFlowSequenceDiagram;
 
 namespace CASE.Dialogs
 {
@@ -68,6 +69,21 @@ namespace CASE.Dialogs
             set
             {
                 prj = value;
+            }
+        }
+
+        public void InitWithProcess(CFDIProcesss process)
+        {
+            if (process == null)
+            {
+                if (prj != null)
+                    textBox1.Text = prj.GetNewProcessName();
+                else
+                    textBox1.Text = "Untitled Process";
+            }
+            else
+            {
+                textBox1.Text = process.ProcessName.Text;
             }
         }
 

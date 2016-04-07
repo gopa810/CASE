@@ -5,32 +5,29 @@ using System.Text;
 
 namespace GPFlowSequenceDiagram
 {
-    public class ItemPartFloat: ItemPart
+    public class ItemPartFloat: DiagramItemPart
     {
         public float Value = 0;
 
-        public ItemPartFloat()
+        public ItemPartFloat(): base(null)
         {
         }
-        public ItemPartFloat(Item it)
+        public ItemPartFloat(DiagramElement it): base(it)
         {
-            Item = it;
         }
-        public ItemPartFloat(Item it, int type)
+        public ItemPartFloat(DiagramElement it, int type): base(it)
         {
-            Item = it;
-            PartType = type;
+            ElementType = type;
         }
-        public ItemPartFloat(Item it, int type, float value)
+        public ItemPartFloat(DiagramElement it, int type, float value): base(it)
         {
-            Item = it;
-            PartType = type;
+            ElementType = type;
             Value = value;
         }
 
-        public override ItemPart Copy()
+        public override DiagramItemPart Copy()
         {
-            return new ItemPartFloat(Item, PartType, Value);
+            return new ItemPartFloat(Parent, ElementType, Value);
         }
     }
 }

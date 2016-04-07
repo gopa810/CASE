@@ -5,34 +5,30 @@ using System.Text;
 
 namespace GPFlowSequenceDiagram
 {
-    public class ItemPartCompoundPoint: ItemPart
+    public class ItemPartCompoundPoint: DiagramItemPart
     {
         public ItemPartFloat X = null;
         public ItemPartFloat Y = null;
 
-        public ItemPartCompoundPoint()
+        public ItemPartCompoundPoint(): base(null)
         {
         }
-        public ItemPartCompoundPoint(Item it)
+        public ItemPartCompoundPoint(DiagramElement it): base(it)
         {
-            Item = it;
         }
-        public ItemPartCompoundPoint(Item it, int type)
+        public ItemPartCompoundPoint(DiagramElement it, int type): base(it, type)
         {
-            Item = it;
-            PartType = type;
         }
-        public ItemPartCompoundPoint(Item it, int type, ItemPartFloat px, ItemPartFloat py)
+        public ItemPartCompoundPoint(DiagramElement it, int type, ItemPartFloat px, ItemPartFloat py)
+            : base(it, type)
         {
-            Item = it;
-            PartType = type;
             X = px;
             Y = py;
         }
 
-        public override ItemPart Copy()
+        public override DiagramItemPart Copy()
         {
-            ItemPartPointF p = new ItemPartPointF(Item, PartType);
+            ItemPartPointF p = new ItemPartPointF(Parent, ElementType);
             if (X != null)
                 p.X = X.Value;
             if (Y != null)

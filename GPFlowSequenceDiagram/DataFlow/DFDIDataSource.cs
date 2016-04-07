@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace GPFlowSequenceDiagram
+namespace GPFlowSequenceDiagram.DataFlow
 {
-    public class ItemWithLoop: ItemWithBorders
+    public class DFDIDataSource
     {
     }
 }

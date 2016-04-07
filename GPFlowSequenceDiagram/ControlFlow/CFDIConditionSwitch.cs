@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace GPFlowSequenceDiagram
 {
-    public class DiagramItemSwitch: ItemWithBorders
+    public class CFDIConditionSwitch: DiagramItem
     {
         public class SwitchBranch
         {
@@ -32,7 +32,6 @@ namespace GPFlowSequenceDiagram
                 if (branchEnding.RefItem != null)
                 {
                     branchEnding.RefItem.Point = branchEnding.Point;
-                    branchEnding.RefItem.ItemPartDidChanged();
                 }
             }
 
@@ -82,17 +81,17 @@ namespace GPFlowSequenceDiagram
 
         protected ItemPartSimpleRect conditionBox = null;
 
-        public DiagramItemSwitch()
+        public CFDIConditionSwitch(DiagramElement de): base(de)
         {
-            conditionBox = new ItemPartSimpleRect(this, ItemPart.PRIMARY_AREA);
-            OriginPoint.SetCursor(Keys.None, Cursors.SizeAll);
+            conditionBox = new ItemPartSimpleRect(this, DiagramItemPart.ET_PRIMARY_AREA);
+            OriginPoint.DE_SetCursor(Keys.None, Cursors.SizeAll);
             OriginPoint.WantsConnect = ConnectivityWanted.EndPointWanted;
 
-            newBranch.branchEnding = new ItemPartOutput(this, ItemPart.ENDING_POINT);
+            newBranch.branchEnding = new ItemPartOutput(this, DiagramItemPart.ET_ENDING_POINT);
             newBranch.branchEnding.WantsConnect = ConnectivityWanted.StartPointWanted;
             newBranch.label = "<new>";
 
-            defaultBranch.branchEnding = new ItemPartOutput(this, ItemPart.ENDING_POINT);
+            defaultBranch.branchEnding = new ItemPartOutput(this, DiagramItemPart.ET_ENDING_POINT);
             defaultBranch.branchEnding.WantsConnect = ConnectivityWanted.StartPointWanted;
             defaultBranch.label = "<default>";
 
@@ -108,8 +107,9 @@ namespace GPFlowSequenceDiagram
             }
         }
 
-        public override void Paint(System.Drawing.Graphics g, HighlightType highType)
+        public override SizeF DE_DrawShape(DiagramDrawingContext ctx, HighlightType highType)
         {
+            Graphics g = ctx.Graphics;
             Pen p1 = GetPenForHighlight(highType);
             Brush b1 = GetBrushForHighlight(highType);
 
@@ -190,6 +190,9 @@ namespace GPFlowSequenceDiagram
             g.DrawLine(p1, minEndingX, EndPoint.Y - 16, maxEndingX, EndPoint.Y - 16);
             DrawArrow(g, p1, Brushes.Black, EndPoint.X, EndPoint.Y - 16, EndPoint.X, EndPoint.Y - 3);
             g.DrawEllipse(p1, EndPoint.X - 3, EndPoint.Y - 3, 6, 6);
+
+            return new SizeF(32, EndPoint.Y - OriginPoint.Y);
+
         }
 
         private void DrawSwitchBranch(System.Drawing.Graphics g, Pen p1, PointF pt1, SwitchBranch sb)
@@ -222,134 +225,41 @@ namespace GPFlowSequenceDiagram
 
         }
 
-        public override void ItemPartDidChanged(ItemPart part)
-        {
-            if (part.PartType == ItemPart.ORIGIN_POINT)
-            {
-                Graphics g = Delegate.GetGraphics();
-                conditionBox.TopCenter = new PointF(OriginPoint.X, OriginPoint.Y + DrawProperties.p_drawingStep);
-                conditionBox.Size = g.MeasureString(ConditionText, DrawProperties.fontSmallTitles);
-
-                float maxHeight = 0;
-                foreach (SwitchBranch sb in branches)
-                {
-                    RecalculateBranchRectangle(ref maxHeight, sb);
-                }
-
-                //Debugger.Log(0, "", "(a) maxHeight is " + maxHeight + "\n");
-                RecalculateBranchRectangle(ref maxHeight, newBranch);
-                //Debugger.Log(0, "", "(b) maxHeight is " + maxHeight + "\n");
-                RecalculateBranchRectangle(ref maxHeight, defaultBranch);
-                //Debugger.Log(0, "", "(c) maxHeight is " + maxHeight + "\n");
-
-                RecalculateBranchEndings();
-
-                float ox = EndPoint.X;
-                float oy = EndPoint.Y;
-                PointF center = GetPointOnPicoForSide(ShapeSide.Center);
-//                Debugger.Log(0, "", "center is " + center.X + ", " + center.Y + "\n");
-                Debugger.Log(0, "", "------------------------------------\n");
-                EndPoint.X = center.X;
-                EndPoint.Y = center.Y + maxHeight + 80;
-                if (ox != EndPoint.X || oy != EndPoint.Y)
-                {
-                    if (EndPoint.MoveReferencedItemPart && EndPoint.RefItem != null)
-                    {
-                        if (EndPoint.RefItem.X != EndPoint.X || EndPoint.RefItem.Y != EndPoint.Y)
-                        {
-                            EndPoint.RefItem.Point = EndPoint.Point;
-                            EndPoint.RefItem.ItemPartDidChanged();
-                        }
-                    }
-                }
-            }
-        }
 
         private static void RecalculateBranchRectangle(ref float maxHeight, SwitchBranch sb)
         {
             float thisHeight = 0;
-            sb.lastOut = sb.branchEnding.GetLastItem();
-            sb.rectArea = sb.branchEnding.CalculateSubordinatesDrawingRectangle();
+            sb.lastOut = sb.branchEnding.GetLastOutputItem();
+            sb.rectArea = new RectangleAnchored();// sb.branchEnding.CalculateSubordinatesDrawingRectangle();
             thisHeight = sb.Height;
             if (thisHeight > maxHeight)
                 maxHeight = thisHeight;
         }
 
-        /// <summary>
-        /// After calculation of ending points,
-        /// we have to call RelayoutBranches to update
-        /// layout of of branches
-        /// </summary>
-        private void RecalculateBranchEndings()
+
+        public override void DE_FindElements(DiagramContext context)
         {
-            PointF center = GetPointOnPicoForSide(ShapeSide.Center);
-
-            Graphics g = Delegate.GetGraphics();
-
-            float totalWidth = 0;
-            float position = 0;
             foreach (SwitchBranch sb in branches)
             {
-                sb.SetY(center.Y, g);
-                totalWidth += sb.Width + 16;
+                if (context.FoundElement == null && sb.branchEnding.NearTo(context.PagePoint))
+                    context.InsertElement(sb.branchEnding);
             }
-
-            newBranch.SetY(center.Y, g);
-            defaultBranch.SetY(center.Y, g);
-            totalWidth += newBranch.Width + defaultBranch.Width + 16;
-
-            position = center.X - totalWidth / 2;
-
-            foreach (SwitchBranch sb in branches)
-            {
-                position += sb.LeftSideWidth;
-                sb.SetX(position);
-                position += sb.RightSideWidth + 16;
-            }
-
-            position += newBranch.LeftSideWidth;
-            newBranch.SetX(position);
-            position += newBranch.RightSideWidth + 16;
-
-            position += defaultBranch.LeftSideWidth;
-            defaultBranch.SetX(position);
-
-            BorderLeft = center.X - totalWidth / 2;
-            BorderRight = BorderLeft + totalWidth;
-
+            if (context.FoundElement == null && newBranch.branchEnding.NearTo(context.PagePoint))
+                context.InsertElement(newBranch.branchEnding);
+            if (context.FoundElement == null && defaultBranch.branchEnding.NearTo(context.PagePoint))
+                context.InsertElement(defaultBranch.branchEnding);
+            if (context.FoundElement == null && conditionBox.Contains(context.PagePoint))
+                context.InsertElement(conditionBox);
+            if (context.FoundElement == null)
+                base.DE_FindElements(context);
         }
 
-        public override ItemPart GetHitItem(PointF pt)
+        public override void MouseMove(DiagramItemPart item, DiagramItemPart startValue, SizeF diff, DiagramMouseKeys keys)
         {
-            foreach (SwitchBranch sb in branches)
-            {
-                if (sb.branchEnding.NearTo(pt))
-                    return sb.branchEnding;
-            }
-            if (newBranch.branchEnding.NearTo(pt))
-                return newBranch.branchEnding;
-            if (defaultBranch.branchEnding.NearTo(pt))
-                return defaultBranch.branchEnding;
-            if (conditionBox.Contains(pt))
-                return conditionBox;
-            return base.GetHitItem(pt);
-        }
-
-        public override void MouseMove(ItemPart item, ItemPart startValue, SizeF diff, DiagramMouseKeys keys)
-        {
-            if (item.PartType == ItemPart.ORIGIN_POINT)
+            if (item.ElementType == DiagramItemPart.ET_ORIGIN_POINT)
             {
                 OriginPoint.X = (startValue as ItemPartPointF).X + diff.Width;
                 OriginPoint.Y = (startValue as ItemPartPointF).Y + diff.Height;
-                ItemPartDidChanged(OriginPoint);
-            }
-        }
-
-        public override RectangleAnchored DrawingRectangle
-        {
-            get
-            {
-                return new RectangleAnchored(OriginPoint.X, OriginPoint.Y, OriginPoint.X - BorderLeft, BorderRight - OriginPoint.X, EndPoint.Y - OriginPoint.Y);
             }
         }
 

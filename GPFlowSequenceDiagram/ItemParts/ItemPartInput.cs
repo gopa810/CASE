@@ -13,21 +13,17 @@ namespace GPFlowSequenceDiagram
         {
         }
 
-        public ItemPartInput(Item it)
+        public ItemPartInput(DiagramItem it): base(it)
         {
-            Item = it;
         }
 
-        public ItemPartInput(Item it, int type)
+        public ItemPartInput(DiagramItem it, int type): base(it,type)
         {
-            Item = it;
-            PartType = type;
         }
 
-        public ItemPartInput(Item it, int type, float x, float y)
+        public ItemPartInput(DiagramItem it, int type, float x, float y): base(it)
         {
-            Item = it;
-            PartType = type;
+            ElementType = type;
             p_pt.X = x;
             p_pt.Y = y;
         }
@@ -49,23 +45,38 @@ namespace GPFlowSequenceDiagram
             }
         }
 
-        public ItemPartOutput GetLastItem()
+        public static ItemPartInput FirstItemPartInput(DiagramElement firstElem)
         {
-            return Item.EndPoint.GetLastItem();
+            DiagramElement elem = firstElem;
+            while (elem != null)
+            {
+                if (elem is ItemPartInput)
+                    return (ItemPartInput)elem;
+                elem = elem.Parent;
+            }
+            return null;
         }
 
-        public void RelayoutPreviousItems()
+        public ItemPartOutput GetLastItem()
+        {
+            return Item.EndPoint.GetLastOutputItem();
+        }
+
+        public DiagramItem GetHeadItem()
         {
             ItemPartInput itemPartStart = this.Item.OriginPoint;
             ItemPartOutput previousItemEnd = itemPartStart.RefItem;
-            Item previousItem = null;
+            DiagramItem previousItem = null;
             while (previousItemEnd != null)
             {
                 previousItem = previousItemEnd.Item;
                 itemPartStart = previousItem.OriginPoint;
-                itemPartStart.ItemPartDidChanged();
+                if (itemPartStart.RefItem == null)
+                    break;
                 previousItemEnd = itemPartStart.RefItem;
             }
+
+            return previousItem;
         }
     }
 }
